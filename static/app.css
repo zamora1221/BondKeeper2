@@ -1,0 +1,101 @@
+
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f6f7fb;color:#1f2937}
+.topbar{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;border-bottom:1px solid #e5e7eb;background:#fff;position:sticky;top:0;z-index:10}
+.brand{font-weight:800}
+.page{padding:16px}
+.layout{display:grid;grid-template-columns:320px 1fr;gap:16px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.card .card-header{padding:12px 14px;border-bottom:1px solid #eef0f3;display:flex;align-items:center;justify-content:space-between}
+.card .card-body{padding:12px 14px}
+.btn{appearance:none;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px;cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,#4cc9f0,#72efdd);border:none;color:#0b132b;font-weight:700}
+.list a{display:block;padding:10px 12px;border-bottom:1px solid #f0f2f6;color:inherit;text-decoration:none}
+.list a:hover{background:#f8fafc}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.grid .span-6{grid-column:span 6}
+.grid .span-4{grid-column:span 4}
+label{display:block;font-size:12px;color:#6b7280;margin-bottom:6px}
+input,textarea,select{width:100%;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#fff}
+h3{margin:0}
+.muted{color:#6b7280}
+<style>
+  /* Make all buttons the same blue as the primary one */
+  .btn,
+  .btn.primary,
+  .btn.secondary,
+  .btn.danger,
+  .btn.small {
+    background-color: #2563EB !important;  /* blue */
+    border-color: #2563EB !important;
+    color: #FFFFFF !important;
+  }
+  .btn:hover,
+  .btn.primary:hover,
+  .btn.secondary:hover,
+  .btn.danger:hover,
+  .btn.small:hover {
+    background-color: #1D4ED8 !important;  /* slightly darker on hover */
+    border-color: #1D4ED8 !important;
+  }
+  .btn:active,
+  .btn.primary:active,
+  .btn.secondary:active,
+  .btn.danger:active,
+  .btn.small:active {
+    background-color: #1E40AF !important;  /* pressed */
+    border-color: #1E40AF !important;
+  }
+  .btn:disabled { opacity: 0.65; }
+</style>
+<style>
+  /* ===== Universal tab color theme (match your blue buttons) ===== */
+
+  /* Base (unselected) — catches common tab patterns */
+  [role="tab"],
+  .tabs .tab, .subtabs .tab,
+  .tabs a, .tabs button,
+  .subtabs a, .subtabs button,
+  .nav-tabs .tab, .nav-tabs .nav-link,
+  .tab, .tab-link, .pill, .pills .pill {
+    background-color: #2563EB !important;   /* blue-600 */
+    border-color: #2563EB !important;
+    color: #FFFFFF !important;
+    background-image: none !important;      /* neutralize gradients if any */
+  }
+
+  /* Hover */
+  [role="tab"]:hover,
+  .tabs .tab:hover, .subtabs .tab:hover,
+  .tabs a:hover, .tabs button:hover,
+  .subtabs a:hover, .subtabs button:hover,
+  .nav-tabs .tab:hover, .nav-tabs .nav-link:hover,
+  .tab:hover, .tab-link:hover, .pill:hover, .pills .pill:hover {
+    background-color: #1D4ED8 !important;   /* blue-700 */
+    border-color: #1D4ED8 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Active / selected */
+  [role="tab"][aria-selected="true"],
+  .nav-tabs .active, .tabs .tab.active, .subtabs .tab.active,
+  .tab.active, .tab[aria-current], .tab[aria-selected="true"],
+  .nav-link.active, .pill.active, .pills .pill.active {
+    background-color: #1E40AF !important;   /* blue-800 */
+    border-color: #1E40AF !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Keyboard focus ring (optional but nice) */
+  [role="tab"]:focus-visible,
+  .tabs .tab:focus-visible, .subtabs .tab:focus-visible,
+  .nav-tabs .nav-link:focus-visible, .tab:focus-visible, .tab-link:focus-visible {
+    outline: 2px solid #93C5FD !important;  /* light blue ring */
+    outline-offset: 2px;
+  }
+  .inline-editable { cursor: text; border-bottom: 1px dotted transparent; }
+.inline-editable:hover { background: #f8fafc; border-color: #cbd5e1; }
+.inline-edit-form input, .inline-edit-form textarea { width: 100%; padding: 6px 8px; }
+.btn.xs { padding: 4px 8px; font-size: 12px; }
+
+</style>

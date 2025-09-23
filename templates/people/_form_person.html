@@ -1,0 +1,39 @@
+{# templates/people/_form_person.html #}
+{% load static %}
+
+{% if is_new %}
+<form method="post"
+      hx-post="{% url 'person_new_partial' %}"
+      hx-target="#tab-main"
+      hx-swap="innerHTML"
+      hx-on:htmx:afterSwap="document.getElementById('modal')?.close()">
+{% else %}
+<form method="post"
+      hx-post="{% url 'person_save_partial' person.pk %}"
+      hx-target="#tab-main"
+      hx-swap="innerHTML"
+      hx-on:htmx:afterSwap="document.getElementById('modal')?.close()">
+{% endif %}
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+    <label>First Name {{ form.first_name }}</label>
+    <label>Last Name {{ form.last_name }}</label>
+    <label>Phone {{ form.phone }}</label>
+    <label>Email {{ form.email }}</label>
+    <label style="grid-column:1 / -1">Address {{ form.address }}</label>
+    <label>City {{ form.city }}</label>
+    <label>State {{ form.state }}</label>
+    <label>ZIP {{ form.zip }}</label>
+    <label>DOB {{ form.dob }}</label>
+    <label>Alias {{ form.alias }}</label>
+    <label style="grid-column:1 / -1">Notes {{ form.notes }}</label>
+  </div>
+
+  <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+
+    <button type="submit" class="btn primary">{% if is_new %}Create{% else %}Save{% endif %}</button>
+  </div>
+</form>

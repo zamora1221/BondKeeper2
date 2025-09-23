@@ -1,0 +1,49 @@
+{# templates/people/_form_receipt_person.html #}
+<form method="post"
+      hx-post="{{ request.path }}"
+      hx-target="#invoices-section"
+      hx-swap="outerHTML"
+      hx-on:htmx:afterRequest="if (event.detail.xhr.status < 400) document.getElementById('modal')?.close()">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+    <label>Invoice
+      <select name="invoice" required>
+        <option value="">— Choose invoice —</option>
+        {% for inv in invoices %}
+          <option value="{{ inv.pk }}">
+            {{ inv.number|default:inv.pk }} — {{ inv.date|date:"Y-m-d"|default:"" }} — ${{ inv.amount|default:"0.00" }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>Date
+      <input type="date" name="date" value="{{ form.date.value|default_if_none:'' }}">
+    </label>
+
+    <label>Amount
+      <input type="number" step="0.01" name="amount" value="{{ form.amount.value|default_if_none:'' }}">
+    </label>
+
+    <label>Method
+      <select name="method">
+        <option value="cash"   {% if form.method.value == 'cash' %}selected{% endif %}>Cash</option>
+        <option value="card"   {% if form.method.value == 'card' %}selected{% endif %}>Card</option>
+        <option value="online" {% if form.method.value == 'online' %}selected{% endif %}>Online</option>
+        <option value="other"  {% if form.method.value == 'other' %}selected{% endif %}>Other</option>
+      </select>
+    </label>
+
+    <label style="grid-column:1 / -1">Reference
+      <input type="text" name="reference" value="{{ form.reference.value|default_if_none:'' }}">
+    </label>
+  </div>
+
+  <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+
+    <button type="submit" class="btn primary">Create</button>
+  </div>
+</form>

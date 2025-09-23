@@ -1,0 +1,76 @@
+<div class="card">
+  <div class="card-header">
+    <strong>Payment Plans</strong>
+    <div style="margin-left:auto">
+      <button class="btn primary"
+              hx-get="{% url 'payment_plan_new_partial' person.pk %}"
+              hx-target="#payment-plan-form"
+              hx-swap="innerHTML">+ Create Plan</button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="payment-plan-form"></div>
+
+    {% if not plans %}
+      <div class="muted">No payment plans yet.</div>
+    {% endif %}
+
+    {% for plan in plans %}
+      <div class="subcard" style="margin-bottom:12px">
+        <div class="subcard-header" style="display:flex;align-items:center;gap:12px">
+          <div>
+            <strong>Plan #{{ plan.id }}</strong>
+            <span class="muted">| {{ plan.get_frequency_display }} |
+              {{ plan.n_payments }} × ${{ plan.installment_amount }}</span>
+            {% if not plan.active %}<span class="badge">Inactive</span>{% endif %}
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            {% if plan.active %}
+            <form hx-post="{% url 'payment_plan_cancel' plan.pk %}">
+              {% csrf_token %}<button class="btn small danger" type="submit">Cancel Plan</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="subcard-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Due Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for it in plan.installments.all %}
+              <tr>
+                <td>{{ it.sequence }}</td>
+                <td>{{ it.due_date|date:"m/d/Y" }}</td>
+                <td>${{ it.amount }}</td>
+                <td>
+                  {% if it.status == "paid" %}
+                    <span class="badge">Paid</span>
+                  {% else %}
+                    {% if it.due_date < today %}<span class="badge">Late</span>{% else %}Due{% endif %}
+                  {% endif %}
+                </td>
+                <td style="text-align:right">
+                  {% if it.status != "paid" and plan.active %}
+                  <form hx-post="{% url 'installment_mark_paid' it.pk %}">
+                    {% csrf_token %}
+                    <button class="btn small primary" type="submit">Mark Paid</button>
+                  </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>

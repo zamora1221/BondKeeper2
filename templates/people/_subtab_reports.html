@@ -1,0 +1,120 @@
+<style>
+  .reports-grid{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom:12px; }
+  .report-card{ border:1px solid #e5e7eb; border-radius:10px; background:#fff; padding:12px; display:flex; flex-direction:column; gap:10px; }
+  .report-card h5{ margin:0; font-size:14px; color:#0f172a; }
+  .report-card .hint{ color:#64748b; font-size:12px; }
+  .report-card form{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .report-card input, .report-card select{ padding:6px 8px; border:1px solid #cbd5e1; border-radius:6px; }
+  .report-card .btn{ padding:6px 10px; border:1px solid #334155; border-radius:6px; background:#0f172a; color:#fff; cursor:pointer; }
+  #reports-results .table{ width:100%; border-collapse:collapse; }
+  #reports-results th, #reports-results td{ border-bottom:1px solid #e5e7eb; padding:8px; text-align:left; }
+  #reports-results th{ color:#475569; font-weight:600; font-size:12px; }
+  #reports-results tfoot td{ font-weight:700; }
+</style>
+
+<div class="reports-grid">
+  <!-- Bonds by Date -->
+  <div class="report-card">
+    <h5>Bonds by Date</h5>
+    <div class="hint">Filter by a date range; grouped rows or detailed list.</div>
+    <form hx-get="{% url 'report_bonds_by_date' %}"
+          hx-target="#reports-results" hx-swap="innerHTML" hx-boost="true">
+      <input type="date" name="start">
+      <input type="date" name="end">
+      <label><input type="checkbox" name="detailed" value="1"> Detailed</label>
+      <button class="btn" type="submit">Run</button>
+       <button type="button" class="btn csv-link"
+          data-url="{% url 'report_bonds_by_date' %}">CSV</button>
+    </form>
+  </div>
+
+  <!-- People with a Balance -->
+  <div class="report-card">
+    <h5>People with a Balance</h5>
+    <div class="hint">Shows outstanding balances (invoices − receipts).</div>
+    <form hx-get="{% url 'report_people_with_balance' %}"
+          hx-target="#reports-results" hx-swap="innerHTML">
+      <label><input type="checkbox" name="only_overdue" value="1"> Only overdue (&gt; 30 days)</label>
+      <button class="btn" type="submit">Run</button>
+      <button type="button" class="btn csv-link"
+          data-url="{% url 'report_people_with_balance' %}">CSV</button>
+    </form>
+  </div>
+
+  <!-- Bonds by County -->
+  <div class="report-card">
+    <h5>Bonds by County</h5>
+    <div class="hint">Grouped by county with counts and totals. Optional date filter.</div>
+    <form hx-get="{% url 'report_bonds_by_county' %}"
+          hx-target="#reports-results" hx-swap="innerHTML">
+      <input type="date" name="start">
+      <input type="date" name="end">
+      <button class="btn" type="submit">Run</button>
+      <button type="button" class="btn csv-link"
+          data-url="{% url 'report_bonds_by_county' %}">CSV</button>
+    </form>
+  </div>
+
+  <!-- Optional useful reports -->
+  <div class="report-card">
+    <h5>Upcoming Court Dates</h5>
+    <div class="hint">Next 14 days (by default).</div>
+    <form hx-get="{% url 'report_upcoming_court_dates' %}"
+          hx-target="#reports-results" hx-swap="innerHTML">
+      <input type="number" name="days" min="1" max="90" placeholder="Days (default 14)">
+      <button class="btn" type="submit">Run</button>
+        <button type="button" class="btn csv-link"
+            data-url="{% url 'report_upcoming_court_dates' %}">CSV</button>
+    </form>
+  </div>
+
+  <div class="report-card">
+    <h5>Missed Check-ins</h5>
+    <div class="hint">Missed in the last 14 days (default).</div>
+    <form hx-get="{% url 'report_missed_checkins' %}"
+          hx-target="#reports-results" hx-swap="innerHTML">
+      <input type="number" name="days" min="1" max="60" placeholder="Days (default 14)">
+      <button class="btn" type="submit">Run</button>
+        <button type="button" class="btn csv-link"
+            data-url="{% url 'report_people_without_recent_checkin' %}">CSV</button>
+    </form>
+  </div>
+
+  <div class="report-card">
+  <h5>People without a Recent Check-in</h5>
+  <div class="hint">Haven’t checked in within N days (default 14).</div>
+  <form hx-get="{% url 'report_people_without_recent_checkin' %}"
+        hx-target="#reports-results" hx-swap="innerHTML">
+    <input type="number" name="days" min="1" max="90" placeholder="Days (default 14)">
+    <button class="btn" type="submit">Run</button>
+      <button type="button" class="btn csv-link"
+            data-url="{% url 'report_overdue_invoices' %}">CSV</button>
+  </form>
+</div>
+
+</div>
+
+<div id="reports-results"></div>
+<script>
+(function(){
+  function serializeForm(form){
+    const p = new URLSearchParams();
+    for (const el of Array.from(form.elements)) {
+      if (!el.name || el.disabled) continue;
+      if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) continue;
+      p.append(el.name, el.value);
+    }
+    return p.toString();
+  }
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('.csv-link');
+    if (!btn) return;
+    const form = btn.closest('form');
+    const base = btn.dataset.url;
+    const qs = form ? serializeForm(form) : '';
+    const url = base + (qs ? ('?' + qs + '&format=csv') : '?format=csv');
+    // open in new tab so the browser handles the download normally
+    window.open(url, '_blank');
+  });
+})();
+</script>

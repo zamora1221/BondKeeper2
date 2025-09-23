@@ -1,0 +1,35 @@
+<!-- templates/people/_tab_import.html -->
+<section id="people-section">
+  <div class="flex items-center justify-between">
+    <h2>Import People</h2>
+    <a class="button" href="{% url 'people_list' %}">Back to People</a>
+  </div>
+
+  <form method="post"
+        enctype="multipart/form-data"
+        hx-post="{% url 'people_import' %}"
+        hx-target="#people-section"
+        hx-swap="outerHTML">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="preview">
+
+    <p>Select a CSV file (UTF-8). First row should be headers.</p>
+    <p>
+      <a href="/static/samples/people_import_template.csv" onclick="return false;">Tip: use the template above.</a>
+    </p>
+
+    <label class="block">CSV File
+      <input type="file" name="file" accept=".csv" required>
+    </label>
+
+    <div class="mt-3">
+      <button class="button primary">Preview</button>
+    </div>
+  </form>
+
+  {% if messages %}
+    <ul class="messages">
+      {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+</section>

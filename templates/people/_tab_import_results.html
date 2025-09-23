@@ -1,0 +1,37 @@
+<!-- templates/people/_tab_import_results.html -->
+<section id="people-section">
+  <h2>Import People — Results</h2>
+
+  <div class="stats">
+    <span>Created: <strong>{{ created }}</strong></span>
+    <span>Updated: <strong>{{ updated }}</strong></span>
+    <span>Failed: <strong>{{ failed }}</strong></span>
+    <span>Mode: <strong>{% if committed %}Imported{% else %}Validated only (no changes){% endif %}</strong></span>
+  </div>
+
+  {% if results %}
+    <div class="table-responsive mt-3">
+      <table class="table">
+        <thead>
+          <tr><th>Status</th><th>Message</th></tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+            <tr class="{% if r.ok %}ok{% else %}err{% endif %}">
+              <td>{% if r.ok %}✅{% else %}❌{% endif %}</td>
+              <td>{{ r.msg }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if results|length >= 200 %}
+        <p>Showing first 200 results…</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="mt-4">
+    <a class="button" href="{% url 'people_import' %}" hx-get="{% url 'people_import' %}" hx-target="#people-section" hx-swap="outerHTML">Import another file</a>
+    <a class="button" href="{% url 'people_list' %}">Back to People</a>
+  </div>
+</section>

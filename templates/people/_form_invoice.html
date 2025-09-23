@@ -1,0 +1,40 @@
+{# templates/people/_form_invoice.html #}
+<form method="post"
+      hx-post="{{ post_url|default:request.path }}"
+      hx-target="#invoices-section"
+      hx-swap="outerHTML"
+      hx-on:htmx:afterRequest="if (event.detail.xhr.status < 400) document.getElementById('modal')?.close()">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+    <label>Date
+      <input type="date" name="date" value="{{ form.date.value|default_if_none:'' }}">
+    </label>
+    <label>Number
+      <input type="text" name="number" value="{{ form.number.value|default_if_none:'' }}">
+    </label>
+    <label style="grid-column:1 / -1">Description
+      <textarea name="description" rows="3">{{ form.description.value|default_if_none:'' }}</textarea>
+    </label>
+    <label>Amount
+      <input type="number" step="0.01" name="amount" value="{{ form.amount.value|default_if_none:'' }}">
+    </label>
+    <label>Due Date
+      <input type="date" name="due_date" value="{{ form.due_date.value|default_if_none:'' }}">
+    </label>
+    <label>Status
+      <select name="status">
+        <option value="unpaid"  {% if form.status.value == 'unpaid' %}selected{% endif %}>Unpaid</option>
+        <option value="partial" {% if form.status.value == 'partial' %}selected{% endif %}>Partial</option>
+        <option value="paid"    {% if form.status.value == 'paid' %}selected{% endif %}>Paid</option>
+      </select>
+    </label>
+  </div>
+
+  <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+
+    <button type="submit" class="btn primary">{% if invoice %}Save{% else %}Create{% endif %}</button>
+  </div>
+</form>

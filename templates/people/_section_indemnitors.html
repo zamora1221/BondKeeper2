@@ -1,0 +1,61 @@
+{# templates/people/_section_indemnitors.html #}
+<div id="indemnitors-section" class="section">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:8px">
+    <h4>Indemnitors</h4>
+    {% if person %}
+      <button class="btn"
+              hx-get="{% url 'indemnitor_new_partial' person.pk %}"
+              hx-target="#modal-body"
+              hx-swap="innerHTML"
+              onclick="document.getElementById('modal').showModal()">
+
+        + Add Indemnitor
+      </button>
+    {% endif %}
+  </div>
+
+  {% if person %}
+    {% with inds=person.indemnitors.all %}
+      {% if inds %}
+        <ul style="margin:6px 0 0 16px; list-style:disc">
+          {% for i in inds %}
+            <li>
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px">
+                <div>
+                  <a href="#"
+                     hx-get="{% url 'indemnitor_edit_partial' i.pk %}"
+                     hx-target="#modal-body"
+                     hx-swap="innerHTML"
+                     onclick="document.getElementById('modal').showModal()">
+                    {{ i.name|default:i.pk }}
+                  </a>
+                  <div class="muted small">
+                    {{ i.relationship|default:"Indemnitor" }}
+                    {% if i.phone %} • {{ i.phone }}{% endif %}
+                    {% if i.email %} • {{ i.email }}{% endif %}
+                  </div>
+                </div>
+
+                <form
+                  action="{% url 'indemnitor_delete' i.pk %}"
+                  method="post"
+                  hx-post="{% url 'indemnitor_delete' i.pk %}"
+                  hx-target="#indemnitors-section"
+                  hx-swap="outerHTML"
+                  hx-confirm="Delete this indemnitor?"
+                  style="display:inline-block; margin-top:6px">
+                  {% csrf_token %}
+                  <button type="submit" class="btn danger small" title="Delete">Delete</button>
+                </form>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="muted">No indemnitors yet.</div>
+      {% endif %}
+    {% endwith %}
+  {% else %}
+    <em class="small">Select or create a person to manage indemnitors.</em>
+  {% endif %}
+</div>

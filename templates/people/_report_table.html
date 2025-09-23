@@ -1,0 +1,25 @@
+{% if headers and rows %}
+<table class="table">
+  <thead>
+    <tr>
+      {% for h in headers %}<th>{{ h }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+      <tr>
+        {% for cell in r %}<td>{{ cell }}</td>{% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+  {% if totals %}
+  <tfoot>
+    <tr>
+      {% for t in totals %}<td>{{ t }}</td>{% endfor %}
+    </tr>
+  </tfoot>
+  {% endif %}
+</table>
+{% else %}
+  <div class="muted">No results.</div>
+{% endif %}

@@ -1,0 +1,33 @@
+<script>
+  (function () {
+    var el = document.getElementById('modal-title');
+    if (el) el.textContent = '{% if obj %}Edit Court Date{% else %}Add Court Date{% endif %}';
+  })();
+</script>
+
+<form
+  {% if obj %}
+    hx-post="{% url 'court_date_edit_partial' obj.pk %}"
+  {% else %}
+    hx-post="{% url 'court_date_new_partial' person.pk %}"
+  {% endif %}
+  hx-target="#subtab-court-dates"
+  hx-swap="innerHTML"
+  hx-on:htmx:afterSwap="document.getElementById('modal')?.close()">
+
+  {% csrf_token %}
+  {{ form.as_p }}
+
+
+  <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px">
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px">
+  <button type="submit"
+          class="btn primary"
+          onclick="document.getElementById('modal').close()">
+    Save
+  </button>
+</div>
+
+
+  </div>
+</form>

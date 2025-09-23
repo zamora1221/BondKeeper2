@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Court Appearance Notice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* ===== Adjust these defaults if you like (Calibrator can change live) ===== */
+    :root{
+      --addr-top: 3.80in;   /* move DOWN by increasing (e.g., 4.00in) */
+      --addr-left: 0.95in;  /* move RIGHT by increasing (e.g., 1.00in) */
+      --addr-width: 4.50in; /* width of the text area */
+    }
+
+    @page { size: Letter; margin: 0.75in; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111827; }
+    .wrap { max-width: 8in; margin: 0 auto; }
+
+    /* Toolbar + calibrator (screen only) */
+    .toolbar { margin: 12px 0 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .print-btn, .tiny-btn {
+      padding:8px 12px; border:1px solid #2563EB; background:#2563EB; color:#fff; border-radius:8px; font-weight:600; cursor:pointer;
+    }
+    .tiny-btn { padding:4px 8px; font-size:12px; }
+    .calibrator { display:flex; gap:6px; align-items:center; }
+    .calibrator .readout { font-size:12px; color:#374151; padding:4px 6px; border:1px solid #e5e7eb; border-radius:6px; background:#f9fafb; }
+    @media print { .toolbar { display:none } .card { box-shadow:none } }
+
+    /* Window address block */
+    .window-address {
+      position: fixed;                  /* stays put for printing */
+      top: var(--addr-top);
+      left: var(--addr-left);
+      width: var(--addr-width);
+      line-height: 1.35;
+      font-size: 13.5px;
+      color: #111827;
+      white-space: nowrap;              /* keep city/state/zip on one line */
+    }
+    .addr-name { font-weight: 800; }
+    .addr-line {}
+
+    /* Push main content down so it doesn't overlap the address */
+    .top-spacer { height: calc(var(--addr-top) + 1.25in); }
+
+    .header { text-align:center; margin-bottom:14px; }
+    .brand { font-size:22px; font-weight:800; letter-spacing:.2px; }
+    .title { font-size:18px; font-weight:700; margin-top:4px; }
+
+    .card { border:1px solid #e5e7eb; border-radius:12px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,.04); }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px 14px; }
+    .label { font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
+    .val { font-size:16px; font-weight:700; }
+    .section { margin-top:16px; }
+    .notes { white-space:pre-wrap; }
+    .ack { margin-top:18px; border-top:1px dashed #cbd5e1; padding-top:14px; font-size:14px; }
+    .line { border-bottom:1px solid #cbd5e1; height:0; margin:14px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="toolbar">
+      <button class="print-btn" onclick="window.print()">Print</button>
+      <div class="calibrator">
+        <span class="readout">Top: <span id="topVal"></span></span>
+        <button class="tiny-btn" onclick="bump('top',-0.05)">▲ -0.05in</button>
+        <button class="tiny-btn" onclick="bump('top', 0.05)">▼ +0.05in</button>
+        <span class="readout">Left: <span id="leftVal"></span></span>
+        <button class="tiny-btn" onclick="bump('left',-0.05)">◀ -0.05in</button>
+        <button class="tiny-btn" onclick="bump('left', 0.05)">▶ +0.05in</button>
+        <button class="tiny-btn" onclick="resetPos()">Reset</button>
+      </div>
+    </div>
+
+    <!-- Windowed-envelope address (PERSON) -->
+    <div class="window-address">
+      <div class="addr-name">{{ person.first_name }} {{ person.last_name }}</div>
+
+      {% if person.address1 or person.address %}
+        <div class="addr-line">{{ person.address1|default:person.address }}</div>
+      {% endif %}
+
+      {% if person.address2 %}
+        <div class="addr-line">{{ person.address2 }}</div>
+      {% endif %}
+
+      <div class="addr-line">
+        {% if person.city %}{{ person.city }}{% if person.state or person.zip or person.postal_code %},{% endif %}{% endif %}
+        {% if person.state %} {{ person.state }}{% endif %}
+        {% if person.zip %} {{ person.zip }}{% elif person.postal_code %} {{ person.postal_code }}{% endif %}
+      </div>
+    </div>
+
+    <!-- Spacer so content starts below the window area -->
+    <div class="top-spacer"></div>
+
+    <div class="header">
+      {% if tenant and tenant.name %}<div class="brand">{{ tenant.name }}</div>{% endif %}
+      <div class="title">Court Appearance Notice</div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <div class="label">Defendant</div>
+          <div class="val">{{ person.first_name }} {{ person.last_name }}</div>
+        </div>
+        <div>
+          <div class="label">Case #</div>
+          <div class="val">{{ court_date.case_number|default:"" }}</div>
+        </div>
+
+        <div>
+          <div class="label">Date</div>
+          <div class="val">{{ court_date.date|date:"m/d/Y"|default:"" }}</div>
+        </div>
+        <div>
+          <div class="label">Time</div>
+          <div class="val">{{ court_date.time|time:"g:i A"|default:"" }}</div>
+        </div>
+
+        <div>
+          <div class="label">Court</div>
+          <div class="val">{{ court_date.court|default:"" }}</div>
+        </div>
+        <div>
+          <div class="label">Location</div>
+          <div class="val">{{ court_date.location|default:"" }}</div>
+        </div>
+      </div>
+
+      {% if court_date.notes %}
+        <div class="section">
+          <div class="label">Notes / Instructions</div>
+          <div class="notes">{{ court_date.notes }}</div>
+        </div>
+      {% endif %}
+
+      <div class="section ack">
+        I acknowledge receipt of this notice and understand I must appear on the date and time listed above.
+        <div class="line"></div>
+        <div class="grid" style="grid-template-columns: 2fr 1fr; gap:14px">
+          <div>
+            <div class="label">Defendant Signature</div>
+            <div class="val" style="height:20px;"></div>
+          </div>
+          <div>
+            <div class="label">Date Served</div>
+            <div class="val" style="height:20px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Helper to read/set CSS vars in inches
+    function getIn(name){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)); }
+    function setIn(name, val){ document.documentElement.style.setProperty(name, val.toFixed(2) + 'in'); save(); renderVals(); }
+    function bump(which, delta){
+      if(which==='top'){ setIn('--addr-top', getIn('--addr-top') + delta); }
+      else { setIn('--addr-left', getIn('--addr-left') + delta); }
+    }
+    function renderVals(){
+      document.getElementById('topVal').textContent = getIn('--addr-top').toFixed(2) + 'in';
+      document.getElementById('leftVal').textContent = getIn('--addr-left').toFixed(2) + 'in';
+    }
+    function save(){
+      localStorage.setItem('addrTop', getIn('--addr-top'));
+      localStorage.setItem('addrLeft', getIn('--addr-left'));
+    }
+    function load(){
+      const t = parseFloat(localStorage.getItem('addrTop'));
+      const l = parseFloat(localStorage.getItem('addrLeft'));
+      if(!isNaN(t)) document.documentElement.style.setProperty('--addr-top', t + 'in');
+      if(!isNaN(l)) document.documentElement.style.setProperty('--addr-left', l + 'in');
+      renderVals();
+    }
+    function resetPos(){
+      document.documentElement.style.setProperty('--addr-top', '3.80in');
+      document.documentElement.style.setProperty('--addr-left', '0.95in');
+      save(); renderVals();
+    }
+    // Allow ?top=3.9&left=1.0 in the URL for quick tests
+    (function(){
+      const p = new URLSearchParams(location.search);
+      const topQ = parseFloat(p.get('top')); const leftQ = parseFloat(p.get('left'));
+      if(!isNaN(topQ)) document.documentElement.style.setProperty('--addr-top', topQ + 'in');
+      if(!isNaN(leftQ)) document.documentElement.style.setProperty('--addr-left', leftQ + 'in');
+    })();
+    load();
+  </script>
+</body>
+</html>

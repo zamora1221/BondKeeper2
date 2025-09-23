@@ -1,0 +1,31 @@
+<div>
+  <h3>Import People</h3>
+  <form method="post"
+        enctype="multipart/form-data"
+        hx-post="{% url 'people_import' %}"
+        hx-target="#subtab-import-panel"
+        hx-swap="innerHTML">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="preview">
+
+    <p>Select a CSV (UTF-8). First row should be headers.</p>
+    <details class="mb-2">
+      <summary>CSV header example</summary>
+      <pre>first_name,last_name,phone,email,dob,address,city,state,zip,notes</pre>
+    </details>
+
+    <label>CSV File
+      <input type="file" name="file" accept=".csv" required>
+    </label>
+
+    <div class="mt-3">
+      <button class="button primary">Preview</button>
+    </div>
+  </form>
+
+  {% if messages %}
+    <ul class="messages mt-2">
+      {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+</div>

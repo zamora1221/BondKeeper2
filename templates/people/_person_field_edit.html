@@ -1,0 +1,38 @@
+<div class="inline-edit-form" id="person-field-{{ field }}">
+  <!-- Hidden CSRF token so HTMX can include it without a <form> -->
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  {% if meta.input == "textarea" %}
+    <textarea name="value" rows="3"
+              hx-post="{% url 'person_field_save_inline' person.pk field %}"
+              hx-trigger="change, keyup[key=='Enter']"
+              hx-include="closest .inline-edit-form"
+              hx-target="#person-field-{{ field }}"
+              hx-swap="outerHTML"
+              hx-sync="this:replace"
+              hx-indicator="#person-field-{{ field }} .save-indicator">{{ value }}</textarea>
+
+  {% elif meta.input == "date" %}
+    <input type="date" name="value" value="{{ value }}"
+           hx-post="{% url 'person_field_save_inline' person.pk field %}"
+           hx-trigger="change, keyup[key=='Enter']"
+           hx-include="closest .inline-edit-form"
+           hx-target="#person-field-{{ field }}"
+           hx-swap="outerHTML"
+           hx-sync="this:replace"
+           hx-indicator="#person-field-{{ field }} .save-indicator">
+
+  {% else %}
+    <input type="text" name="value" value="{{ value }}"
+           hx-post="{% url 'person_field_save_inline' person.pk field %}"
+           hx-trigger="change, keyup[key=='Enter']"
+           hx-include="closest .inline-edit-form"
+           hx-target="#person-field-{{ field }}"
+           hx-swap="outerHTML"
+           hx-sync="this:replace"
+           hx-indicator="#person-field-{{ field }} .save-indicator">
+  {% endif %}
+
+  {% if error %}<div class="field-error">{{ error }}</div>{% endif %}
+  <span class="save-indicator" aria-hidden="true" style="display:none">Saving…</span>
+</div>

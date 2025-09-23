@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Receipt {{ receipt.pk }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* === Window address position (use the on-screen calibrator or hard-code here) === */
+    :root{
+      --addr-top: 3.80in;   /* move DOWN by increasing (e.g., 4.00in) */
+      --addr-left: 0.95in;  /* move RIGHT by increasing (e.g., 1.00in) */
+      --addr-width: 4.50in; /* text width inside the window */
+    }
+
+    @page { size: Letter; margin: 0.75in; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111827; }
+    .wrap { max-width: 8in; margin: 0 auto; }
+
+    /* Toolbar + calibrator (screen only) */
+    .toolbar { margin: 12px 0 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .btn { padding:8px 12px; border:1px solid #2563EB; background:#2563EB; color:#fff; border-radius:8px; font-weight:600; cursor:pointer; }
+    .tiny-btn { padding:4px 8px; font-size:12px; border:1px solid #2563EB; background:#2563EB; color:#fff; border-radius:6px; cursor:pointer; }
+    .calibrator { display:flex; gap:6px; align-items:center; }
+    .readout { font-size:12px; color:#374151; padding:4px 6px; border:1px solid #e5e7eb; border-radius:6px; background:#f9fafb; }
+    @media print { .toolbar { display:none } .card { box-shadow:none } }
+
+    /* Window address block */
+    .window-address{
+      position: fixed;
+      top: var(--addr-top);
+      left: var(--addr-left);
+      width: var(--addr-width);
+      line-height: 1.35;
+      font-size: 13.5px;
+      color: #111827;
+      white-space: nowrap; /* keep city/state/zip on one line */
+    }
+    .addr-name { font-weight: 800; }
+    .addr-line {}
+
+    /* Push main content down below the window area */
+    .top-spacer { height: calc(var(--addr-top) + 1.25in); }
+
+    .header { text-align:center; margin-bottom:14px; }
+    .brand { font-size:22px; font-weight:800; letter-spacing:.2px; }
+    .title { font-size:18px; font-weight:700; margin-top:4px; }
+
+    .card { border:1px solid #e5e7eb; border-radius:12px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,.04); }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px 14px; }
+    .label { font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
+    .val { font-size:16px; font-weight:700; }
+    .hr { border-bottom:1px solid #e5e7eb; margin:12px 0; }
+    .totals { display:grid; grid-template-columns: 1fr 1fr; gap:6px 14px; margin-top:8px; }
+    .right { text-align:right; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="toolbar">
+      <button class="btn" onclick="window.print()">Print</button>
+      <div class="calibrator">
+        <span class="readout">Top: <span id="topVal"></span></span>
+        <button class="tiny-btn" onclick="bump('top',-0.05)">▲ -0.05in</button>
+        <button class="tiny-btn" onclick="bump('top', 0.05)">▼ +0.05in</button>
+        <span class="readout">Left: <span id="leftVal"></span></span>
+        <button class="tiny-btn" onclick="bump('left',-0.05)">◀ -0.05in</button>
+        <button class="tiny-btn" onclick="bump('left', 0.05)">▶ +0.05in</button>
+        <button class="tiny-btn" onclick="resetPos()">Reset</button>
+      </div>
+    </div>
+
+    <!-- Windowed-envelope address (PERSON) -->
+    <div class="window-address">
+      <div class="addr-name">{{ person.first_name }} {{ person.last_name }}</div>
+
+      {% if person.address1 or person.address %}
+        <div class="addr-line">{{ person.address1|default:person.address }}</div>
+      {% endif %}
+
+      {% if person.address2 %}
+        <div class="addr-line">{{ person.address2 }}</div>
+      {% endif %}
+
+      <div class="addr-line">
+        {% if person.city %}{{ person.city }}{% if person.state or person.zip or person.postal_code %},{% endif %}{% endif %}
+        {% if person.state %} {{ person.state }}{% endif %}
+        {% if person.zip %} {{ person.zip }}{% elif person.postal_code %} {{ person.postal_code }}{% endif %}
+      </div>
+    </div>
+
+    <!-- Spacer so content starts below the window area -->
+    <div class="top-spacer"></div>
+
+    <div class="header">
+      {% if tenant and tenant.name %}<div class="brand">{{ tenant.name }}</div>{% endif %}
+      <div class="title">Payment Receipt</div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <div class="label">Receipt #</div>
+          <div class="val">{{ receipt.pk }}</div>
+        </div>
+        <div>
+          <div class="label">Date</div>
+          <div class="val">{{ receipt.date|date:"m/d/Y"|default:"" }}</div>
+        </div>
+
+        <div>
+          <div class="label">Received From</div>
+          <div class="val">{{ person.first_name }} {{ person.last_name }}</div>
+        </div>
+        <div>
+          <div class="label">Amount</div>
+          <div class="val">${{ receipt.amount|floatformat:2 }}</div>
+        </div>
+
+        <div>
+          <div class="label">Method</div>
+          <div class="val">
+            {% if receipt.get_method_display %}{{ receipt.get_method_display }}{% else %}{{ receipt.method }}{% endif %}
+          </div>
+        </div>
+        <div>
+          <div class="label">Reference</div>
+          <div class="val">{{ receipt.reference|default:"" }}</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="grid">
+        <div>
+          <div class="label">Invoice #</div>
+          <div class="val">{{ invoice.number|default:invoice.pk }}</div>
+        </div>
+        <div>
+          <div class="label">Invoice Date</div>
+          <div class="val">{{ invoice.date|date:"m/d/Y"|default:"" }}</div>
+        </div>
+
+        <div style="grid-column:1 / -1">
+          <div class="label">Description</div>
+          <div class="val">{{ invoice.description|default:"" }}</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="totals">
+        <div class="label">Invoice Total</div>
+        <div class="right val">${{ invoice_total|floatformat:2 }}</div>
+
+        <div class="label">Paid to Date</div>
+        <div class="right val">${{ total_paid_to_date|floatformat:2 }}</div>
+
+        <div class="label">Balance Due</div>
+        <div class="right val">${{ balance_after|floatformat:2 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Calibrator (stores values in localStorage). Use 100% print scale.
+    function getIn(n){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n)); }
+    function setIn(n,v){ document.documentElement.style.setProperty(n, v.toFixed(2)+'in'); save(); render(); }
+    function bump(which,d){ if(which==='top') setIn('--addr-top', getIn('--addr-top')+d); else setIn('--addr-left', getIn('--addr-left')+d); }
+    function render(){ topVal.textContent=getIn('--addr-top').toFixed(2)+'in'; leftVal.textContent=getIn('--addr-left').toFixed(2)+'in'; }
+    function save(){ localStorage.setItem('rcptAddrTop', getIn('--addr-top')); localStorage.setItem('rcptAddrLeft', getIn('--addr-left')); }
+    function load(){
+      const t=parseFloat(localStorage.getItem('rcptAddrTop'));
+      const l=parseFloat(localStorage.getItem('rcptAddrLeft'));
+      if(!isNaN(t)) document.documentElement.style.setProperty('--addr-top', t+'in');
+      if(!isNaN(l)) document.documentElement.style.setProperty('--addr-left', l+'in');
+      render();
+    }
+    function resetPos(){ document.documentElement.style.setProperty('--addr-top','3.80in'); document.documentElement.style.setProperty('--addr-left','0.95in'); save(); render(); }
+    // URL overrides like ?top=3.9&left=1.0
+    (function(){ const p=new URLSearchParams(location.search); const t=parseFloat(p.get('top')); const l=parseFloat(p.get('left'));
+      if(!isNaN(t)) document.documentElement.style.setProperty('--addr-top', t+'in');
+      if(!isNaN(l)) document.documentElement.style.setProperty('--addr-left', l+'in');})();
+    const topVal=document.getElementById('topVal'), leftVal=document.getElementById('leftVal'); load();
+  </script>
+</body>
+</html>

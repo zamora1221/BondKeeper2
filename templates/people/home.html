@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="layout">
+  <aside class="card">
+    <div class="card-header">
+      <strong>People</strong>
+      <button class="btn primary"
+              hx-get="{% url 'person_new_partial' %}"
+              hx-target="#tab-main"
+              hx-swap="innerHTML">+ New</button>
+    </div>
+    <div class="card-body">
+      <div style="padding:4px 0 10px">
+        <input type="search" name="q" placeholder="Search people…"
+               hx-get="{% url 'people_tab_list' %}"
+               hx-trigger="keyup changed delay:300ms, search"
+               hx-target="#people-list">
+      </div>
+
+      {# ⬇️ Replace your original #people-list div with this one #}
+      <div id="people-list"
+           hx-get="{% url 'people_tab_list' %}"
+           hx-trigger="load, people_list_refresh from:body"
+           hx-include="[name='q']"
+           hx-target="#people-list"
+           hx-swap="innerHTML"
+           hx-on::afterSwap="(function(){
+             var pk = window._selectPersonPk;
+             if (!pk) return;
+             var row = document.querySelector('#people-list a[data-pk=\"'+ pk +'\"]');
+             if (row) {
+               row.classList.add('is-active');
+               try { row.scrollIntoView({ block: 'nearest' }); } catch(e) {}
+               // ensure the right panel shows the same person
+               htmx.ajax('GET', '/tab/main/' + pk + '/', { target: '#tab-main' });
+             }
+             window._selectPersonPk = null;
+           })()">
+      </div>
+    </div>
+  </aside>
+
+  <section class="card">
+    <div class="card-header">
+      <h3>Main</h3>
+      <div></div>
+    </div>
+    <div class="card-body" id="tab-main">
+      <div class="muted">Select a person or create a new one.</div>
+    </div>
+  </section>
+</div>
+
+<script>
+  // Remember which person to select after we refresh the list
+  document.body.addEventListener('people_select', function (e) {
+    try { window._selectPersonPk = (e.detail && e.detail.pk) || null; }
+    catch (_) { window._selectPersonPk = null; }
+  });
+</script>
+<script>
+(function () {
+  // If URL has ?p=<id>, load that person's panel into #tab-main on first paint
+  var params = new URLSearchParams(window.location.search);
+  var pid = params.get('p');
+  var t   = params.get('t'); // optional tab slug like "calendar-global"
+
+  if (!pid || !window.htmx) return;
+
+  htmx.ajax('GET', '/tab/main/' + encodeURIComponent(pid) + '/', {
+    target: '#tab-main',
+    swap: 'innerHTML'
+  });
+
+  // After the person panel swaps in, if ?t=... is present, activate that tab
+  document.body.addEventListener('htmx:afterSwap', function onSwap(ev) {
+    if (!ev.target || ev.target.id !== 'tab-main') return;
+    document.body.removeEventListener('htmx:afterSwap', onSwap);
+
+    if (!t) return;
+    // Click the subtab button matching the slug
+    var btn = document.querySelector('.subtab[data-target="subtab-' + t + '"]');
+    if (btn) btn.click();
+  });
+})();
+</script>
+
+
+<style>
+  /* optional: highlight selected person in the list */
+  .list a.is-active {
+    background: #eef2ff;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: block;
+  }
+</style>
+{% endblock %}

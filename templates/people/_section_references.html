@@ -1,0 +1,60 @@
+{# templates/people/_section_references.html #}
+<div id="references-section" class="section">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:8px">
+    <h4>References</h4>
+    {% if person %}
+      <button class="btn"
+              hx-get="{% url 'reference_new_partial' person.pk %}"
+              hx-target="#modal-body"
+              hx-swap="innerHTML"
+              onclick="document.getElementById('modal').showModal()">
+        + Add Reference
+      </button>
+    {% endif %}
+  </div>
+
+  {% if person %}
+    {% with refs=person.references.all %}
+      {% if refs %}
+        <ul style="margin:6px 0 0 16px; list-style:disc">
+          {% for ref in refs %}
+            <li>
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px">
+                <div>
+                  <a href="#"
+                     hx-get="{% url 'reference_edit_partial' ref.pk %}"
+                     hx-target="#modal-body"
+                     hx-swap="innerHTML"
+                     onclick="document.getElementById('modal').showModal()">
+                    {{ ref.name|default:ref.pk }}
+                  </a>
+                  <div class="muted small">
+                    {{ ref.relationship|default:"Reference" }}
+                    {% if ref.phone %} • {{ ref.phone }}{% endif %}
+                    {% if ref.email %} • {{ ref.email }}{% endif %}
+                  </div>
+                </div>
+
+                <form
+                  action="{% url 'reference_delete' ref.pk %}"
+                  method="post"
+                  hx-post="{% url 'reference_delete' ref.pk %}"
+                  hx-target="#references-section"
+                  hx-swap="outerHTML"
+                  hx-confirm="Delete this reference?"
+                  style="display:inline-block; margin-top:6px">
+                  {% csrf_token %}
+                  <button type="submit" class="btn danger small" title="Delete">Delete</button>
+                </form>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="muted">No references yet.</div>
+      {% endif %}
+    {% endwith %}
+  {% else %}
+    <em class="small">Select or create a person to manage references.</em>
+  {% endif %}
+</div>

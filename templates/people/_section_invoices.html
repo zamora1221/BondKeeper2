@@ -1,0 +1,187 @@
+{# templates/people/_section_invoices.html #}
+{% load humanize %}
+<div id="invoices-section" class="section"
+     hx-on:htmx:afterSwap="document.getElementById('modal')?.close()"
+     hx-get="{% url 'invoices_section_partial' person.pk %}"
+     hx-trigger="billing_changed from:body"
+     hx-target="#invoices-section"
+     hx-swap="outerHTML">
+
+
+  <style>
+    .inv-wrap { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    @media (max-width: 900px) { .inv-wrap { grid-template-columns: 1fr; } }
+    .cardish { border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#fff; }
+    .cardish-header { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+    .cardish-body { padding:8px 10px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px 10px; border-bottom:1px solid #e5e7eb; vertical-align:top; }
+    thead th { text-align:left; font-weight:700; color:#334155; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+    tfoot td { font-weight:700; background:#f8fafc; }
+    .num { text-align:right; font-variant-numeric:tabular-nums; }
+    .actions { white-space:nowrap; display:flex; gap:6px; }
+    .muted { color:#64748b; }
+  </style>
+
+  <div class="inv-wrap">
+    <!-- Left: INVOICES -->
+    <div class="cardish">
+      <div class="cardish-header">
+        <strong>Invoices</strong>
+        {% if person %}
+          <button class="btn"
+                  hx-get="{% url 'invoice_new_partial' person.pk %}"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="document.getElementById('modal').showModal()">
+            + Add Invoice
+          </button>
+        {% endif %}
+      </div>
+      <div class="cardish-body">
+        {% with rows=invoice_rows|default:None %}
+          {% if rows %}
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:110px">Date</th>
+                  <th style="width:110px">Number</th>
+                  <th>Description</th>
+                  <th style="width:110px" class="num">Amount</th>
+                  <th style="width:110px" class="num">Paid</th>
+                  <th style="width:110px" class="num">Balance</th>
+                  <th style="width:110px">Due</th>
+                  <th style="width:180px">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in rows %}
+                  {% with inv=row.inv paid=row.paid balance=row.balance %}
+                  <tr>
+                    <td>{{ inv.date|date:"Y-m-d"|default:"" }}</td>
+                    <td>{{ inv.number|default:"" }}</td>
+                    <td>{{ inv.description|default:"" }}</td>
+                    <td class="num">{% if inv.amount %}${{ inv.amount|floatformat:2|intcomma }}{% endif %}</td>
+                    <td class="num">{% if paid %}${{ paid|floatformat:2|intcomma }}{% else %}$0.00{% endif %}</td>
+                    <td class="num">{% if balance %}${{ balance|floatformat:2|intcomma }}{% else %}$0.00{% endif %}</td>
+                    <td>{{ inv.due_date|date:"Y-m-d"|default:"" }}</td>
+                    <td class="actions">
+                      <button class="btn small"
+                              hx-get="{% url 'invoice_edit_partial' inv.pk %}"
+                              hx-target="#modal-body"
+                              hx-swap="innerHTML"
+                              onclick="document.getElementById('modal').showModal()">Edit</button>
+                      <form action="{% url 'invoice_delete' inv.pk %}"
+                            method="post"
+                            hx-post="{% url 'invoice_delete' inv.pk %}"
+                            hx-target="#invoices-section"
+                            hx-swap="outerHTML"
+                            hx-confirm="Delete this invoice?"
+                            style="display:inline-block; margin:0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn danger small">Delete</button>
+                      </form>
+                      {# NOTE: No per-invoice “+ Receipt” button here anymore. #}
+                    </td>
+                  </tr>
+                  {% endwith %}
+                {% endfor %}
+              </tbody>
+              {% if invoice_totals %}
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="text-align:right">Totals:</td>
+                  <td class="num">{% if invoice_totals.amount %}${{ invoice_totals.amount|floatformat:2|intcomma }}{% else %}$0.00{% endif %}</td>
+                  <td class="num">{% if invoice_totals.paid %}${{ invoice_totals.paid|floatformat:2|intcomma }}{% else %}$0.00{% endif %}</td>
+                  <td class="num">{% if invoice_totals.balance %}${{ invoice_totals.balance|floatformat:2|intcomma }}{% else %}$0.00{% endif %}</td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+              {% endif %}
+            </table>
+          {% else %}
+            <div class="muted">No invoices yet.</div>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+
+    <!-- Right: RECEIPTS (all for this person) -->
+    <div class="cardish">
+      <div class="cardish-header">
+        <strong>Receipts</strong>
+        {% if person %}
+          <button class="btn"
+                  hx-get="{% url 'receipt_new_for_person_partial' person.pk %}"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="document.getElementById('modal').showModal()">
+            + Add Receipt
+          </button>
+        {% endif %}
+      </div>
+
+      <div class="cardish-body">
+        {% with rcpts=receipt_list|default:None %}
+          {% if rcpts %}
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:110px">Date</th>
+                  <th style="width:110px" class="num">Amount</th>
+                  <th style="width:120px">Method</th>
+                  <th>Reference</th>
+                  <th style="width:120px">Invoice #</th>
+                  <th style="width:160px">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in rcpts %}
+                  <tr>
+                    <td>{{ r.date|date:"Y-m-d"|default:"" }}</td>
+                    <td class="num">{% if r.amount %}${{ r.amount|floatformat:2|intcomma }}{% else %}$0.00{% endif %}</td>
+                    <td>{{ r.get_method_display }}</td>
+                    <td>{{ r.reference|default:"" }}</td>
+                    <td>{{ r.invoice.number|default:r.invoice.pk }}</td>
+                    <td class="actions">
+                      <button class="btn small"
+                              hx-get="{% url 'receipt_edit_partial' r.pk %}"
+                              hx-target="#modal-body"
+                              hx-swap="innerHTML"
+                              onclick="document.getElementById('modal').showModal()">Edit</button>
+                      <a class="btn small"
+   href="{% url 'receipt_print' r.pk %}"
+   target="_blank" rel="noopener">
+  Print
+</a>
+
+
+                      <form action="{% url 'receipt_delete' r.pk %}"
+                            method="post"
+                            hx-post="{% url 'receipt_delete' r.pk %}"
+                            hx-target="#invoices-section"
+                            hx-swap="outerHTML"
+                            hx-confirm="Delete this receipt?"
+                            style="display:inline-block; margin:0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn danger small">Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="muted">No receipts yet.</div>
+          {% endif %}
+        {% endwith %}
+      </div>
+
+    </div>
+  </div>
+</div>
+<div id="payment-plan-section"
+       hx-get="{% url 'payment_plan_section_partial' person.pk %}"
+       hx-trigger="load, billing_changed from:body"></div>
+
+</div>

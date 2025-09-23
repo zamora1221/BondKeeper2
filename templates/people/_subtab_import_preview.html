@@ -1,0 +1,50 @@
+<div>
+  <h3>Map Columns</h3>
+
+  <form method="post"
+        hx-post="{% url 'people_import' %}"
+        hx-target="#subtab-import-panel"
+        hx-swap="innerHTML">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="import">
+    <input type="hidden" name="csv_b64" value="{{ csv_b64|escape }}">
+
+    <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      {% for col in cols %}
+        <label><strong>CSV: “{{ col.header }}”</strong>
+          <select name="map_field_{{ col.i }}">
+            <option value="">-- skip --</option>
+            {% for f in allowed_fields %}
+              <option value="{{ f }}"{% if col.guess == f %} selected{% endif %}>{{ f }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      {% endfor %}
+    </div>
+
+    <div class="mt-3">
+      <label><input type="checkbox" name="dedupe_by_phone" value="1" checked> Update if same phone exists</label>
+    </div>
+
+    <h4 class="mt-4">Preview (first rows)</h4>
+    <div class="table-responsive">
+      <table class="table">
+        <thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for r in preview_rows %}
+            <tr>{% for cell in r %}<td>{{ cell }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 flex gap-2">
+      <button class="button" name="commit" value="0">Validate Only</button>
+      <button class="button primary" name="commit" value="1">Import</button>
+      <a class="button"
+         hx-get="{% url 'people_import' %}"
+         hx-target="#subtab-import-panel"
+         hx-swap="innerHTML">Start Over</a>
+    </div>
+  </form>
+</div>

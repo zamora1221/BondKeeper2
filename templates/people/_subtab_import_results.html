@@ -1,0 +1,35 @@
+<div>
+  <h3>Results</h3>
+  <p class="stats">
+    Created: <strong>{{ created }}</strong> ·
+    Updated: <strong>{{ updated }}</strong> ·
+    Failed: <strong>{{ failed }}</strong> ·
+    Mode: <strong>{% if committed %}Imported{% else %}Validated only{% endif %}</strong>
+  </p>
+
+  {% if results %}
+    <div class="table-responsive mt-2">
+      <table class="table">
+        <thead><tr><th>Status</th><th>Message</th></tr></thead>
+        <tbody>
+          {% for r in results %}
+            <tr class="{% if r.ok %}ok{% else %}err{% endif %}">
+              <td>{% if r.ok %}✅{% else %}❌{% endif %}</td>
+              <td>{{ r.msg }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if results|length >= 200 %}
+        <p>Showing first 200 rows…</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="mt-3">
+    <a class="button"
+       hx-get="{% url 'people_import' %}"
+       hx-target="#subtab-import-panel"
+       hx-swap="innerHTML">Import another file</a>
+  </div>
+</div>

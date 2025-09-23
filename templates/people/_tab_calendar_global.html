@@ -1,0 +1,74 @@
+{# Global Court Calendar (all people). Swaps only within its pane. #}
+<div class="card">
+  <div class="card-header">
+    <strong>Court Calendar — All People</strong>
+  </div>
+
+  <div class="card-body">
+    <style>
+      .cal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+      .cal-month { font-weight:700; font-size:18px; }
+      .cal-grid { display:grid; grid-template-columns: repeat(7, 1fr); gap:8px; }
+      .cal-dow { text-align:center; font-weight:700; color:#334155; padding:6px 0; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; }
+      .cal-cell { min-height:120px; border:1px solid #e5e7eb; border-radius:10px; padding:6px 8px; background:#fff; display:flex; flex-direction:column; gap:6px; }
+      .cal-daynum { font-weight:700; color:#334155; }
+      .cal-item { font-size:12px; line-height:1.2; padding:4px 6px; border-radius:6px; background:#f1f5f9; }
+      .muted { color:#64748b; }
+      .clicky { cursor:pointer; text-decoration:none; color:inherit; }
+      @media (max-width: 860px) { .cal-grid { grid-template-columns: repeat(2, 1fr); } .cal-dow { display:none; } }
+    </style>
+
+    <div class="cal-head">
+      <form hx-get="{% url 'calendar_partial' %}"
+            hx-target="#subtab-calendar-global" hx-swap="innerHTML" style="margin:0">
+        <input type="hidden" name="y" value="{{ prev_y }}">
+        <input type="hidden" name="m" value="{{ prev_m }}">
+        <button class="btn" type="submit">‹ Prev</button>
+      </form>
+
+      <div class="cal-month">{{ year }} – {{ month|stringformat:"02d" }}</div>
+
+      <form hx-get="{% url 'calendar_partial' %}"
+            hx-target="#subtab-calendar-global" hx-swap="innerHTML" style="margin:0">
+        <input type="hidden" name="y" value="{{ next_y }}">
+        <input type="hidden" name="m" value="{{ next_m }}">
+        <button class="btn" type="submit">Next ›</button>
+      </form>
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-dow">Mon</div><div class="cal-dow">Tue</div><div class="cal-dow">Wed</div>
+      <div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div><div class="cal-dow">Sun</div>
+
+      {% for _ in offset_range %}<div class="cal-cell muted"></div>{% endfor %}
+
+      {% for day in days_data %}
+        <div class="cal-cell">
+          <div class="cal-daynum">{{ day.day }}</div>
+          {% if day.items %}
+            {% for dt, cd in day.items %}
+              <div class="cal-item">
+                {% if dt %}{{ dt|date:"g:i A" }} — {% endif %}
+                {% if cd.person %}
+                  <a class="clicky"
+                     hx-get="{% url 'people_tab_main' cd.person.pk %}"
+                     hx-target="#tab-main" hx-swap="innerHTML">
+                    {{ cd.person }}
+                  </a>
+                {% else %}Unknown{% endif %}
+                {% if cd.location or cd.court %}
+                  <span class="muted"> — {{ cd.location|default:cd.court }}</span>
+                {% endif %}
+                {% if cd.county %}
+                  <span class="muted"> ({{ cd.county }})</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="muted">No events</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>

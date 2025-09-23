@@ -1,0 +1,15 @@
+{# Renders the value cell and makes it clickable #}
+{% load tz %}
+
+{% with fid="person-field-"|add:field %}
+<div class="v inline-editable"
+     id="person-field-{{ field }}"
+     hx-get="{% url 'person_field_edit' person.pk field %}"
+     hx-target="#person-field-{{ field }}"
+     hx-swap="outerHTML"
+     title="Click to edit">
+  {{ value|default:"-" }}
+</div>
+
+{% endwith %}
+

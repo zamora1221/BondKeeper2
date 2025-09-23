@@ -1,0 +1,89 @@
+{# templates/people/_section_bonds.html #}
+<div id="bonds-section" class="section"
+     hx-on:htmx:afterSwap="document.getElementById('modal')?.close()">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px">
+    <h4 style="margin:0">Bonds</h4>
+    {% if person %}
+      <button class="btn"
+              hx-get="{% url 'bond_new_partial' person.pk %}"
+              hx-target="#modal-body"
+              hx-swap="innerHTML"
+              onclick="document.getElementById('modal').showModal()">
+        + Add Bond
+      </button>
+    {% endif %}
+  </div>
+
+  <style>
+    /* minimal, clean table styling */
+    .bonds-table { width: 100%; border-collapse: collapse; }
+    .bonds-table th, .bonds-table td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    .bonds-table thead th { text-align: left; font-weight: 700; color: #334155; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .bonds-table tbody tr:hover { background: #f9fafb; }
+    .bonds-actions { white-space: nowrap; display: flex; gap: 6px; }
+    .muted { color: #64748b; }
+    .small { font-size: 12px; }
+  </style>
+
+  {% if person %}
+    {% with bonds=person.bonds.all %}
+      {% if bonds %}
+        <table class="bonds-table">
+          <thead>
+            <tr>
+              <th style="width:110px">Date</th>
+              <th>Agency</th>
+              <th>Offense Type</th>
+              <th style="width:120px">Bond Amount</th>
+              <th>Jurisdiction</th>
+              <th>County</th>
+              <th>Charge</th>
+              <th style="width:140px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bonds %}
+              <tr>
+                <td>{{ b.date|date:"Y-m-d"|default:"" }}</td>
+                <td>{{ b.agency|default:"" }}</td>
+                <td>{{ b.offense_type|default:"" }}</td>
+                <td>
+                  {% if b.bond_amount %}
+                    ${{ b.bond_amount|floatformat:2 }}
+                  {% endif %}
+                </td>
+                <td>{{ b.jurisdiction|default:"" }}</td>
+                <td>{{ b.county|default:"" }}</td>
+                <td>{{ b.charge|default:"" }}</td>
+                <td class="bonds-actions">
+                  <button class="btn small"
+                          hx-get="{% url 'bond_edit_partial' b.pk %}"
+                          hx-target="#modal-body"
+                          hx-swap="innerHTML"
+                          onclick="document.getElementById('modal').showModal()">
+                    Edit
+                  </button>
+                  <form action="{% url 'bond_delete' b.pk %}"
+                        method="post"
+                        hx-post="{% url 'bond_delete' b.pk %}"
+                        hx-target="#bonds-section"
+                        hx-swap="outerHTML"
+                        hx-confirm="Delete this bond?"
+                        style="display:inline-block; margin:0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn danger small">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="muted">No bonds yet.</div>
+      {% endif %}
+    {% endwith %}
+  {% else %}
+    <em class="small">Select or create a person to manage bonds.</em>
+  {% endif %}
+</div>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="layout">
+  <section class="card" style="flex:1">
+    <div class="card-header">
+      <strong>Court Calendar</strong>
+      <div style="margin-left:auto;display:flex;gap:10px">
+        <a class="btn" href="{% url 'court_calendar_ics' %}">Download .ics</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="get" class="filters" style="display:flex; gap:10px; margin-bottom:10px">
+        <input type="text" name="agency" value="{{ agency }}" placeholder="Filter by agency">
+        <input type="text" name="county" value="{{ county }}" placeholder="Filter by county">
+        <button class="btn primary" type="submit">Filter</button>
+      </form>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date/Time</th>
+            <th>Person</th>
+            <th>Court / Location</th>
+            <th>County</th>
+            <th>Agency</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for cd in items %}
+          {% with dt=cd.scheduled_at|default:cd.date %}
+          <tr>
+            <td>
+              {% if cd.scheduled_at %}{{ cd.scheduled_at|date:"m/d/Y g:i A" }}
+              {% elif cd.date %}{{ cd.date|date:"m/d/Y" }} {{ cd.time|default_if_none:"" }}
+              {% else %}-{% endif %}
+            </td>
+            <td>{{ cd.person }}</td>
+            <td>{{ cd.location|default:cd.court }}</td>
+            <td>{{ cd.county|default_if_none:"" }}</td>
+            <td>{{ cd.agency|default_if_none:"" }}</td>
+          </tr>
+          {% endwith %}
+        {% empty %}
+          <tr><td colspan="5" class="muted">No court dates found.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,345 @@
+{# templates/people/_tab_main.html #}
+{% load static %}
+
+<!-- Header toolbar: Edit person opens modal -->
+<div class="card-header" style="display:flex; align-items:center; justify-content:space-between; gap:8px">
+  <h3 id="person-header-name" style="margin:0">{{ person.full_name|default:"Person" }}</h3>
+  {% if person %}
+  <div class="actions" style="display:flex; gap:8px">
+    <form hx-post="{% url 'person_delete' person.pk %}"
+          hx-target="#tab-main"
+          hx-swap="innerHTML"
+          hx-confirm="Are you sure you want to delete {{ person }}?">
+      {% csrf_token %}
+      <button type="submit" class="btn danger">Delete</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .subtabs { display:flex; gap:6px; border-bottom:1px solid #e5e7eb; margin:8px 0 14px; }
+  .subtab { appearance:none; border:none; background:#f5f7fb; color:#334155;
+            padding:8px 12px; border-radius:8px 8px 0 0; cursor:pointer; font-weight:600; }
+  .subtab:hover { filter:brightness(0.97); }
+  .subtab.is-active { background:#ffffff; color:#0f172a; box-shadow:0 -1px 0 0 #ffffff inset; }
+  .subtab-pane { display:none; }
+  .subtab-pane.is-active { display:block; }
+  .kv { display:grid; grid-template-columns: 140px 1fr; gap:8px 12px; padding:6px 0; }
+  .kv label { color:#64748b; font-size:12px; }
+  .kv .v { color:#0f172a; }
+  .section { padding:8px 0 12px; }
+/* Non-edit state (clickable) */
+.inline-editable{
+  display:inline-block;
+  width:100%;
+  min-height:28px;
+  padding:4px 6px;
+  border:1px dashed #cbd5e1;     /* visible border before clicking */
+  border-radius:6px;
+  background:#fff;
+  cursor:text;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.inline-editable:hover{
+  background:#f8fafc;
+  border-color:#94a3b8;
+  box-shadow:0 0 0 2px rgba(148,163,184,.15) inset;
+}
+
+/* Edit state controls */
+.inline-edit-form input,
+.inline-edit-form textarea{
+  width:100%;
+  padding:6px 8px;
+  border:1px solid #94a3b8;
+  border-radius:6px;
+  outline:none;
+}
+.inline-edit-form input:focus,
+.inline-edit-form textarea:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 2px rgba(37,99,235,.15);
+}
+
+/* Saving indicator behavior with htmx */
+.inline-edit-form.htmx-request .save-indicator{ display:inline; margin-left:6px; color:#64748b; }
+.inline-edit-form.htmx-request input,
+.inline-edit-form.htmx-request textarea{ opacity:.85; }
+.field-error{ color:#b91c1c; font-size:12px; margin-top:4px; }
+
+</style>
+
+<div style="display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:10px">
+  {% include "people/_widget_recent_court_date.html" %}
+  {% include "people/_widget_billing_summary.html" %}
+  {% include "people/_widget_last_checkin.html" %}
+</div>
+<div class="subtabs-root">
+  <div class="subtabs" id="profile-related-tabs">
+    <button class="subtab is-active" data-target="subtab-profile">Profile</button>
+    <button class="subtab" data-target="subtab-bonds">Bonds</button>
+    <button class="subtab" data-target="subtab-court-dates">Court Dates</button>
+    <button class="subtab" data-target="subtab-checkins">Check Ins</button>
+    <button class="subtab" data-target="subtab-invoices">Invoices/Receipts</button>
+    <button class="subtab" data-target="subtab-calendar-global">Court Date Calendar</button>
+    <button class="subtab" data-target="subtab-reports">Reports</button>
+    <button class="subtab" data-target="subtab-import">Import</button>
+  </div>
+
+  <!-- PROFILE (contact/address/details + indemnitors + references) -->
+  <div id="subtab-profile" class="subtab-pane is-active">
+    <div class="section">
+  <h4>Contact</h4>
+      <div class="kv">
+  <label>First Name</label>
+  <div id="person-field-first_name"
+       hx-get="{% url 'person_field_edit' person.pk 'first_name' %}"
+       hx-trigger="load"
+       hx-target="#person-field-first_name"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+<div class="kv">
+  <label>Last Name</label>
+  <div id="person-field-last_name"
+       hx-get="{% url 'person_field_edit' person.pk 'last_name' %}"
+       hx-trigger="load"
+       hx-target="#person-field-last_name"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+<div class="kv">
+  <label>Phone</label>
+  <div id="person-field-phone"
+       hx-get="{% url 'person_field_edit' person.pk 'phone' %}"
+       hx-trigger="load"
+       hx-target="#person-field-phone"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+<div class="kv">
+  <label>Email</label>
+  <div id="person-field-email"
+       hx-get="{% url 'person_field_edit' person.pk 'email' %}"
+       hx-trigger="load"
+       hx-target="#person-field-email"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+</div>
+
+
+    <div class="section">
+  <h4>Address</h4>
+
+  <div class="kv">
+  <label>Street</label>
+  <div id="person-field-address"
+       hx-get="{% url 'person_field_edit' person.pk 'address' %}"
+       hx-trigger="load"
+       hx-target="#person-field-address"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+<div class="kv">
+  <label>City</label>
+  <div id="person-field-city"
+       hx-get="{% url 'person_field_edit' person.pk 'city' %}"
+       hx-trigger="load"
+       hx-target="#person-field-city"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+<div class="kv">
+  <label>State</label>
+  <div id="person-field-state"
+       hx-get="{% url 'person_field_edit' person.pk 'state' %}"
+       hx-trigger="load"
+       hx-target="#person-field-state"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+<div class="kv">
+  <label>ZIP</label>
+  <div id="person-field-zip"
+       hx-get="{% url 'person_field_edit' person.pk 'zip' %}"
+       hx-trigger="load"
+       hx-target="#person-field-zip"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+</div>
+
+
+
+    <div class="section">
+  <h4>Details</h4>
+  <div class="kv">
+  <label>DOB</label>
+  <div id="person-field-dob"
+       hx-get="{% url 'person_field_edit' person.pk 'dob' %}"
+       hx-trigger="load"
+       hx-target="#person-field-dob"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+<div class="kv">
+  <label>Alias</label>
+  <div id="person-field-alias"
+       hx-get="{% url 'person_field_edit' person.pk 'alias' %}"
+       hx-trigger="load"
+       hx-target="#person-field-alias"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+<div class="kv">
+  <label>Notes</label>
+  <div id="person-field-notes"
+       hx-get="{% url 'person_field_edit' person.pk 'notes' %}"
+       hx-trigger="load"
+       hx-target="#person-field-notes"
+       hx-swap="outerHTML">Loading…</div>
+</div>
+
+</div>
+
+
+    {# single sources of truth: include the sections only #}
+    {% include "people/_section_indemnitors.html" %}
+    {% include "people/_section_references.html" %}
+  </div>
+
+  <!-- BONDS tab -->
+  <div id="subtab-bonds" class="subtab-pane">
+    {% include "people/_section_bonds.html" %}
+  </div>
+<div id="subtab-court-dates" class="subtab-pane">
+  {% include "people/_section_court_dates.html" %}
+</div>
+<div id="subtab-checkins" class="subtab-pane">
+  {% include "people/_section_checkins.html" %}
+</div>
+  <div id="subtab-invoices" class="subtab-pane">
+  {% include "people/_section_invoices.html" %}
+</div>
+<div id="subtab-calendar-global"
+     class="subtab-pane"
+     hx-get="{% url 'calendar_partial' %}"
+     hx-trigger="revealed once"
+     hx-target="#subtab-calendar-global"
+     hx-swap="innerHTML">
+  <div class="muted">Loading calendar…</div>
+</div>
+  <div id="subtab-reports"
+     class="subtab-pane"
+     hx-get="{% url 'reports_panel' %}"
+     hx-trigger="revealed once"
+     hx-target="#subtab-reports"
+     hx-swap="innerHTML">
+  <div class="muted">Loading reports…</div>
+</div>
+
+<div id="subtab-import" class="subtab-pane">
+  <div id="subtab-import-panel"
+       hx-get="{% url 'people_import' %}"
+       hx-trigger="revealed once"
+       hx-target="#subtab-import-panel"
+       hx-swap="innerHTML">
+    <div class="muted">Loading import tool…</div>
+  </div>
+</div>
+
+
+
+</div>
+
+<script>
+  (function () {
+    const root = document.currentScript.closest('.subtabs-root') || document;
+    const tabs = root.querySelector('#profile-related-tabs');
+    if (!tabs) return;
+
+    tabs.addEventListener('click', function (e) {
+      const btn = e.target.closest('.subtab'); if (!btn) return;
+      const targetId = btn.getAttribute('data-target');
+
+      // toggle UI
+      root.querySelectorAll('.subtab').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      root.querySelectorAll('.subtab-pane').forEach(p => p.classList.remove('is-active'));
+      const pane = root.querySelector('#' + targetId);
+      if (pane) pane.classList.add('is-active');
+
+      // NEW: remember tab slug (?t=profile | bonds | court-dates | checkins | invoices | calendar-global)
+      var url = new URL(window.location);
+      var slug = targetId.replace(/^subtab-/, '');
+      url.searchParams.set('t', slug);
+      history.replaceState(null, '', url);
+    });
+  })();
+</script>
+
+<script>
+  // When this person panel renders, remember it in the URL (?p=ID)
+  (function () {
+    var pid = {{ person.pk|default:'null' }};
+    if (!pid) return;
+    var url = new URL(window.location);
+    url.searchParams.set('p', pid);
+    history.replaceState(null, '', url);
+  })();
+</script>
+<script>
+  // When court dates change anywhere, reload the global calendar pane if it exists.
+  document.body.addEventListener('court_dates_changed', function () {
+    var pane = document.getElementById('subtab-calendar-global');
+    if (!pane) return;
+    var url = pane.getAttribute('data-url');
+    if (window.htmx && url) {
+      // Re-fetch the current calendar view
+      htmx.ajax('GET', url, { target: '#subtab-calendar-global', swap: 'innerHTML' });
+    }
+  });
+</script>
+<script>
+  document.body.addEventListener('htmx:afterSwap', function (evt) {
+    try {
+      var path = evt.detail?.requestConfig?.path || '';
+      if (path.includes('/court-dates/')) {
+        document.body.dispatchEvent(new CustomEvent('court_dates_changed'));
+      }
+    } catch (e) {}
+  });
+</script>
+<script>
+  // When first/last name changes, update the header
+  document.body.addEventListener('person_name_updated', function (e) {
+    var name = e.detail && e.detail.name;
+    var h = document.getElementById('person-header-name');
+    if (name && h) h.textContent = name;
+  });
+</script>
+<script>
+  document.body.addEventListener('person_name_updated', function (e) {
+    var d = e.detail || {}, id = d.id, name = d.name;
+    if (!id || !name) return;
+
+    // Header
+    var h = document.getElementById('person-header-name');
+    if (h) h.textContent = name;
+
+    // Left list item
+    var link = document.querySelector('[data-pk="'+ id +'"]');
+    if (link) {
+      var nameSpan = link.querySelector('.name');
+      if (nameSpan) nameSpan.textContent = name;
+      else link.textContent = name; // fallback
+    }
+  });
+</script>
+
+
+
+
+
+
+

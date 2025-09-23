@@ -1,0 +1,60 @@
+
+<form method="post"
+      hx-post="{{ post_url|default:request.path }}"
+      hx-target="#bonds-section"
+      hx-swap="outerHTML"
+      hx-on:htmx:afterRequest="if (event.detail.xhr.status < 400) document.getElementById('modal').close()">
+  {% csrf_token %}
+
+  <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+    <label>Date
+      <input type="date" name="date" value="{{ form.date.value|default_if_none:'' }}">
+    </label>
+    <label>Agency
+      <input type="text" name="agency" value="{{ form.agency.value|default_if_none:'' }}">
+    </label>
+    <label>Offense Type
+      <input type="text" name="offense_type" value="{{ form.offense_type.value|default_if_none:'' }}">
+    </label>
+    <label>Bond Amount
+      <input type="number" step="0.01" name="bond_amount" value="{{ form.bond_amount.value|default_if_none:'' }}">
+    </label>
+    <label>Jurisdiction
+      <input type="text" name="jurisdiction" value="{{ form.jurisdiction.value|default_if_none:'' }}">
+    </label>
+    <label>County
+      <input type="text" name="county" value="{{ form.county.value|default_if_none:'' }}">
+    </label>
+    <label style="grid-column:1 / -1">Charge
+      <input type="text" name="charge" value="{{ form.charge.value|default_if_none:'' }}">
+    </label>
+  </div>
+{# SUGGESTIONS: one datalist per field #}
+  <datalist id="dl-offense">
+    {% for opt in lookups.offense_type %}
+      <option value="{{ opt.value }}"></option>
+    {% endfor %}
+  </datalist>
+
+  <datalist id="dl-county">
+    {% for opt in lookups.county %}
+      <option value="{{ opt.value }}"></option>
+    {% endfor %}
+  </datalist>
+
+  <datalist id="dl-juris">
+    {% for opt in lookups.jurisdiction %}
+      <option value="{{ opt.value }}"></option>
+    {% endfor %}
+  </datalist>
+
+  <datalist id="dl-charge">
+    {% for opt in lookups.charge %}
+      <option value="{{ opt.value }}"></option>
+    {% endfor %}
+  </datalist>
+  <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+
+    <button type="submit" class="btn primary">{% if bond %}Save{% else %}Create{% endif %}</button>
+  </div>
+</form>

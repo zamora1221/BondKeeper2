@@ -1,0 +1,29 @@
+{# templates/people/_form_checkin.html #}
+<form method="post"
+      hx-post="{{ post_url|default:request.path }}"
+      hx-target="#checkins-section"
+      hx-swap="outerHTML"
+      hx-on:htmx:afterRequest="if (event.detail.xhr.status < 400) document.getElementById('modal')?.close()">
+  {% csrf_token %}
+
+  <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+    <label>Phone
+      <input type="text" name="phone" value="{{ form.phone.value|default_if_none:'' }}">
+    </label>
+    <label style="grid-column:1 / -1">Address
+      <input type="text" name="address" value="{{ form.address.value|default_if_none:'' }}">
+    </label>
+    <label style="grid-column:1 / -1">How they checked in
+      <select name="method">
+        <option value="phone"    {% if form.method.value == 'phone' %}selected{% endif %}>Phone</option>
+        <option value="online"   {% if form.method.value == 'online' %}selected{% endif %}>Online</option>
+        <option value="in_person"{% if form.method.value == 'in_person' %}selected{% endif %}>In-person</option>
+      </select>
+    </label>
+  </div>
+
+  <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+
+    <button type="submit" class="btn primary">{% if checkin %}Save{% else %}Create{% endif %}</button>
+  </div>
+</form>
