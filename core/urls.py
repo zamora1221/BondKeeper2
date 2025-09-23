@@ -6,6 +6,7 @@ from .views_health import health_ok
 urlpatterns = [
     path('', views.people_home, name='people_home'),
     path('tab/list/', views.people_tab_list, name='people_tab_list'),
+    path('accounts/', include('django.contrib.auth.urls')),  # provides /accounts/login/
     path('tab/main/<int:pk>/', views.person_main_panel, name='people_tab_main'),
     path('new/partial/', views.person_new_partial, name='person_new_partial'),
     path('edit/<int:pk>/', views.person_edit_partial, name='person_edit_partial'),
