@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'dev-secret-key,'
 DEBUG = True
 ALLOWED_HOSTS = [".ngrok-free.app",
+                 ".leapcell.dev",
                  "localhost", "127.0.0.1",]
 
 VAPID_PUBLIC_KEY= "BGFve9B7xnz5PY8oOEHhcaB-ddguHguQ8r-sncEMpZ5kaMCfqPMPGLPMzS7B14UC9KS7myTKXxVHkYG3deJjL74"
@@ -18,6 +19,7 @@ PUBLIC_BASE_URL = "https://05014a56bf45.ngrok-free.app"
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.ngrok-free.app",
+    "https://*.leapcell.dev",
 ]
 
 # So Django knows the original request was HTTPS behind the proxy
