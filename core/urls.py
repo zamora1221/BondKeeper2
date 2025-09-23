@@ -1,6 +1,7 @@
 
 from django.urls import path
 from . import views_people as views
+from .views_health import health_ok
 
 urlpatterns = [
     path('', views.people_home, name='people_home'),
@@ -100,5 +101,7 @@ urlpatterns = [
     path("push/test/person/<int:person_pk>/", views.push_test_person, name="push_test_person"),
     path("service-worker.js", views.service_worker, name="service_worker"),
     path("push/debug/person/<int:person_pk>/", views.push_debug_person, name="push_debug_person"),
+    path("kaithhealthcheck", health_ok, name="health_ok"),
+    path("kaithheathcheck", health_ok),  # handle their typo too
 
 ]
