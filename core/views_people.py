@@ -29,6 +29,9 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.core.files.uploadedfile import UploadedFile
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.contrib.auth.decorators import login_required
+
 
 # CSV → model field suggestions
 HEADER_SYNONYMS: Dict[str, List[str]] = {
