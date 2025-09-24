@@ -49,7 +49,16 @@ ALLOWED_FIELDS = ["first_name","last_name","phone","email","dob","address","city
 @login_required
 def people_home(request):
     return render(request, 'people/home.html', {})
-
+@login_required
+@require_GET
+def person_panel(request, pk):
+    # If you use per-tenant data, keep the tenant filter:
+    qs = Person.objects.all()
+    if hasattr(request, "tenant") and request.tenant:
+        qs = qs.filter(tenant=request.tenant)
+    person = get_object_or_404(qs, pk=pk)
+    return render(request, "people/_tab_main.html", {"person": person})
+    
 @login_required
 def people_tab_list(request):
     q = request.GET.get('q', '').strip()
