@@ -1,29 +1,19 @@
-<style>
-  #people-scroll {
-    max-height: 65vh;
-    overflow: auto;
-    padding-right: 6px;
-    border: 1px solid #eef2f7;
-    border-radius: 8px;
-    background: #fff;
-  }
-  #people-scroll .list { display:flex; flex-direction:column; gap:6px; padding:8px; }
-  #people-scroll .list a { display:block; padding:8px 10px; border-radius:6px; text-decoration:none; color:#0f172a; }
-  #people-scroll .list a:hover { background:#f5f7fb; }
-</style>
-
-<div id="people-scroll">
-  <div class="list">
-    {% for p in people %}
-      <a data-pk="{{ p.pk }}" hx-get="/tab/main/{{ p.pk }}/" hx-target="#tab-main" hx-swap="innerHTML">
-  <span id="person-name-{{ p.pk }}" class="name">{{ p.full_name|default:p.pk }}</span>
-  {% if p.phone %} • <span class="phone">{{ p.phone }}</span>{% endif %}
-</a>
-
-
-    {% empty %}
-      <div class="muted">No people yet.</div>
-    {% endfor %}
-  </div>
-</div>
-
+{# templates/people/_list.html #}
+{% load static %}
+<ul id="people-list" class="people-list">
+  {% for p in people %}
+    <li>
+      <a
+        class="person-link"
+        data-pk="{{ p.pk }}"
+        href="{% url 'person_panel' p.pk %}"
+        hx-get="{% url 'person_panel' p.pk %}"
+        hx-target="#tab-main"
+        hx-swap="innerHTML"
+        hx-push-url="true"
+      >
+        <span class="name">{{ p.full_name|default:"(no name)" }}</span>
+      </a>
+    </li>
+  {% endfor %}
+</ul>
